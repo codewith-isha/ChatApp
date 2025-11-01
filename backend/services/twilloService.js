@@ -1,5 +1,4 @@
 const twillo = require('twilio');
-
 // twillo Credential 
 
 const accountSid = process.env.TWILLO_ACCOUNT_SID
@@ -22,7 +21,30 @@ const sendOtpToPhoneNumber = async(phoneNumber)=>{
     return response;
     
   } catch (error) {
-    console.error(error)
-    throw new Error('Failed to sent otp')
+   console.error('Twilio Error Message:', error.message);
+    console.error('Twilio Full Error:', error);
+  throw new Error(`Failed to send otp: ${error.message}`);
   }
+}
+
+
+const verifyOtp = async(phoneNumber,otp)=>{
+  try {
+    console.log('this is otp', otp)
+     console.log(' this number', phoneNumber)
+    const response = await client.verify.v2.services(serviceSid).verificationChecks.create({
+      to:phoneNumber,
+     code:otp
+    });
+    console.log('this is my otp response', response);
+    return response;
+    
+  } catch (error) {
+    console.error(error)
+    throw new Error('Failed to verify otp')
+  }
+}
+module.exports = {
+  sendOtpToPhoneNumber,
+  verifyOtp
 }
