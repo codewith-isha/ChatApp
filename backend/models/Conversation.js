@@ -1,7 +1,7 @@
 const mongoose = require('mongoose')
 const conversationSchema = new mongoose.Schema({
   participants :[{type:mongoose.Schema.Types.ObjectId , ref:"User"}],
-  lastMessage:{typs:mongoose.Schema.Types.ObjectId , ref:'Message'},
+  lastMessage:{type:mongoose.Schema.Types.ObjectId , ref:'Message'},
   unreadCount:{type:Number, default:0}
 
 }, {timestamps:true})

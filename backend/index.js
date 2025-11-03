@@ -1,14 +1,15 @@
+const dotenv = require('dotenv');
 const express= require('express')
 const app = express()
 const cookieParser = require("cookie-parser")
 const cors = require('cors')
-const dotenv = require('dotenv');
 const connectDb = require('./config/dbConnect');
 const bodyParser = require('body-parser')
 const authRoute = require('./routes/authRoute')
 dotenv.config()
 
 const PORT  = process.env.PORT
+app.use(cors())
 // middleware 
 app.use(express.json())
 app.use(cookieParser())
