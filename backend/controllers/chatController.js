@@ -97,7 +97,73 @@ exports.getMessage = async (req,res)=>{
   const userId = req.user.userId;
   try {
     const conversation = await Conversation.findById(conversationId)
+    if(!conversation){
+      return response(res,404,'Conversation not found')
+    }
+  if(!conversation.participants.includes(userId)){
+    return response(res,403,'Not authorized to view this conversation')
+  }
+  const messages = await Message.find({conversation:conversationId})
+  .populate('sender',"username profilePicture")
+  .populate('receiver','username profilePicture')
+  .sort('createdAt')
+
+  await Message.updateMany({
+    conversation:conversationId,
+    receiver:receiverId,
+    messageStatus:{$in:["send","delivered"]}
+  },{$set:{messageStatus:"read"}}
+);
+
+conversation.unreadCount = 0;
+await conversation.save()
+return response(res,200,"Message retrived",messages)
   } catch (error) {
-    
+        console.error(error);
+    return response(res, 500 , 'Internal server error')
+
+  }
+}
+
+
+exports.markAsRead = async(req,res)=>{
+  const {messageIds} = req.body
+  const userId = req.user.userId;
+  try {
+    let messages = await Message.find({
+      _id:{$in:messageIds},
+      receiver:userId,
+    })
+    await Message.updateMany(
+      { _id:{$in:messageIds},receiver:userId},
+      {$set :{messageStatus:"read"}}
+    );
+
+    return response(res,200,'Messages marked as read')
+  } catch (error) {
+       console.error(error);
+    return response(res, 500 , 'Internal server error')
+  }
+}
+
+exports.deleteMessage = async(req,res)=>{
+  const {messageId} = req.params
+  const userId = req.user.userId;
+  try {
+    const message = await Message.findById(messageId)
+    if(!message){
+      return response(res,404,"Message not found") 
+    }
+    if(message.sender.toString() !==userId){
+      return response(res,403,"Not authorized to delete this message")
+    }
+    await message.deleteOne();
+
+
+
+    return response(res,200,"Message deleted successfully")
+  } catch (error) {
+     console.error(error);
+    return response(res, 500 , 'Internal server error')
   }
 }
