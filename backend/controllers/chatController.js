@@ -1,4 +1,4 @@
-const { response } = require("express");
+const express = require("express");
 const { uploadFileToCloudinary } = require("../config/cloudinaryConfig");
 const Conversation = require("../models/Conversation");
 const response = require("../utils/responseHandler");
@@ -8,7 +8,7 @@ exports.sendMessage = async (req, res) => {
   try {
     const { senderId, receiverId, content, messageStatus } = req.body;
     const file = req.file;
-    const participants = (senderId, receiverId).sort();
+    const participants = [senderId, receiverId].sort();
     let conversation = await Conversation.findOne({
       participants: participants,
     });
@@ -110,7 +110,7 @@ exports.getMessage = async (req,res)=>{
 
   await Message.updateMany({
     conversation:conversationId,
-    receiver:receiverId,
+    receiver:userId,
     messageStatus:{$in:["send","delivered"]}
   },{$set:{messageStatus:"read"}}
 );
@@ -154,13 +154,10 @@ exports.deleteMessage = async(req,res)=>{
     if(!message){
       return response(res,404,"Message not found") 
     }
-    if(message.sender.toString() !==userId){
+    if(message.sender.toString() !==userId  && message.receiver.toString() !== userId){
       return response(res,403,"Not authorized to delete this message")
     }
-    await message.deleteOne();
-
-
-
+    await Message.findByIdAndDelete(messageId);
     return response(res,200,"Message deleted successfully")
   } catch (error) {
      console.error(error);

@@ -7,7 +7,7 @@ const router = express.Router();
 
 router.post('/send-message', authMiddleware,multerMiddleware,chatController.sendMessage);
 router.get('/conversations',authMiddleware,chatController.getConversation)
-router.get('conversations/:conversationId/messages',authMiddleware,chatController.getMessage)
+router.get('/conversations/:conversationId/messages',authMiddleware,chatController.getMessage)
 router.put('/messages/read',authMiddleware,chatController.markAsRead)
 router.delete('/messages/:messageId',authMiddleware,chatController.deleteMessage)
 

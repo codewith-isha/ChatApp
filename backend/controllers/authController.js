@@ -49,7 +49,7 @@ const sentOtp = async(req,res) =>{
 //step - 2 Verify otp 
 
 const verifyOtp = async(req,res)=>{
-  const  {phoneNumber, phoneSuffix,email,otp} = req.body
+  const  {phoneNumber, phoneSuffix,email,emailOtp} = req.body
   try {
     let user;
     if(email){
@@ -58,12 +58,12 @@ const verifyOtp = async(req,res)=>{
         return response (res,404,`User not Found`)
       }
       const now = new Date();
-      if(!user.emailOtp || String(user.emailOtp) !==String(otp) || now > new Date(user.emailOtpExpiry)){
+      if(!user.emailOtp || String(user.emailOtp) !==String(emailOtp) || now > new Date(user.emailOtpExpiry)){
         return response(res,400,'Invalid or Expired otp')
       }
        
       user.isVerified = true;
-      user.emailOtp=null;
+      user.emailOtp=emailOtp;
       user.emailOtpExpiry = null;
       await user.save();
     }
@@ -96,6 +96,7 @@ const verifyOtp = async(req,res)=>{
     return response(res,500,"Internal server Error !!")
   }
 }
+// update profile 
 
 const updateProfile = async(req,res)=>{
   const {username,agreed,about} = req.body;
@@ -123,6 +124,8 @@ const updateProfile = async(req,res)=>{
   }
 }
 
+
+// check authentication 
 const checkAuthenticate = async (req,res)=>{
   try {
     const userId = req.user.userId;

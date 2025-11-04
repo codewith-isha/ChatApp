@@ -13,7 +13,6 @@ router.get('/logout',authController.logout)
 
 // protected route 
 router.put('/update-profile',authMiddleware, multerMiddleware,authController.updateProfile)
-
 router.get('/check-auth',authMiddleware,authController.checkAuthenticate)
 router.get('/users',authMiddleware,authController.getAllUsers)
 
