@@ -7,27 +7,49 @@ const connectDb = require('./config/dbConnect');
 const bodyParser = require('body-parser')
 const authRoute = require('./routes/authRoute')
 const chatRoute = require('./routes/chatRoute')
+const intializeSocket = require('./services/socketService')
+const  statusRoute = require('./routes/statusRoute')
+const http = require('http')
 dotenv.config()
 
 const PORT  = process.env.PORT
+
+// database connection 
+connectDb()
+
+const corsOption = {
+   origin:process.env.FORNTEND_URL,
+   credentials:true
+}
+
+app.use(cors(corsOption))
+
 app.use(cors())
 // middleware 
 app.use(express.json())
 app.use(cookieParser())
 app.use(bodyParser.urlencoded({extended:true}));
 
+// create server 
+const server = http.createServer(app)
+const io = intializeSocket(server)
+app.use((req,res,next)=>{
+   req.io = io;
+   req.socketUserMap = io.socketUserMap
+   next();
+})
 
-// database connection 
-connectDb()
 
 
 
 // Routes 
 app.use('/api/auth', authRoute)
 app.use('/api/chat',chatRoute)
+app.use('/api/status', statusRoute)
 
 
-app.listen(PORT , ()=>{
+
+server.listen(PORT , ()=>{
    console.log(`PORT is running on http://localhost:${PORT}`)
 })
 

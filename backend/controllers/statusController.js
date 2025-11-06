@@ -41,12 +41,11 @@ exports.createStatus = async (req, res) => {
       user:userId,
       content :mediaUrl || content,
       contentType:finalContentType,
-      imageOrVideoUrl,
-      messageStatus,
+     expiresAt
     });
      await status.save();
 
-    const populatedStatus = await Message.findOne(status?._id)
+    const populatedStatus = await Status.findOne(status?._id)
       .populate("user", "username profilePicture")
       .populate("viewers", "username profilePicture");
 
@@ -80,11 +79,12 @@ exports.viewStatus = async(req,res)=>{
     if(!status){
       return response(res,404,'Status not found')
     }
+    let updatedStatus = status
     if(!status.viewers.includes(userId)){
       status.viewers.push(userId);
       await status.save()
 
-      const updatedStatus = await Status.findById(statusId)
+       updatedStatus = await Status.findById(statusId)
       .populate('user', "username profilePicture")
       .populate("viewers", "username profilePicture")
     }else{
