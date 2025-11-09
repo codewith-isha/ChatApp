@@ -61,6 +61,16 @@ exports.sendMessage = async (req, res) => {
     const populatedMessage = await Message.findOne(message?._id)
       .populate("sender", "username profilePicture")
       .populate("receiver", "username profilePicture");
+   
+      // emit socket event for realtime 
+       if(req.io && req.socketUserMap){
+        const receiverSocketId = req.socketUserMap.get(receiverId);
+        if(receiverSocketId){
+          req.io.to(receiverSocketId).emit('receive_message',populatedMessage);
+          message.messageStatus = 'delivered';
+          await message.save()
+        }
+    }
 
     return response(res, 201, "Message send succeddfully", populatedMessage);
   } catch (error) {
@@ -139,6 +149,21 @@ exports.markAsRead = async(req,res)=>{
       {$set :{messageStatus:"read"}}
     );
 
+    // notify to  origin sender 
+      if(req.io && req.socketUserMap){
+       for (const message of messages){
+        const senderSocketId = req.socketUserMap.get(message.sender.toString());
+        if(socketUserMap){
+          const updatedMessage = {
+            _id:message>_id,
+            messageStatus:'read',
+          };
+          req.io.to(senderSocketId).emit('message_read',updatedMessage);
+          await message.save()
+        }
+       }
+        
+    }
     return response(res,200,'Messages marked as read')
   } catch (error) {
        console.error(error);
@@ -158,6 +183,17 @@ exports.deleteMessage = async(req,res)=>{
       return response(res,403,"Not authorized to delete this message")
     }
     await Message.findByIdAndDelete(messageId);
+    
+    // emit socket event 
+       if(req.io && req.socketUserMap){
+     const reveiverSocketId = req.socketUserMap.get(message.receiver.toString())
+     if(reveiverSocketId){
+      req.io.to(reveiverSocketId).emit('message_deleted',messageId)
+     }
+    }
+
+
+
     return response(res,200,"Message deleted successfully")
   } catch (error) {
      console.error(error);

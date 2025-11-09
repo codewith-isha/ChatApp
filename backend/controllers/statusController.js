@@ -1,8 +1,9 @@
-const express = require("express");
+// const express = require("express");
 const { uploadFileToCloudinary } = require("../config/cloudinaryConfig");
 const Status = require("../models/Status");
 const response = require("../utils/responseHandler");
-const Message = require("../models/Message");
+// const Message = require("../models/Message");
+// const { connection } = require("mongoose");
 
 exports.createStatus = async (req, res) => {
   try {
@@ -48,6 +49,15 @@ exports.createStatus = async (req, res) => {
     const populatedStatus = await Status.findOne(status?._id)
       .populate("user", "username profilePicture")
       .populate("viewers", "username profilePicture");
+      // emit socket event 
+     if(req.io && req.socketUserMap){
+      // broadcast to all connection user expect the creator 
+      for(const [connectedUserId,socketId] of req.socketUserMap){
+        if(connectedUserId !==userId){
+          req.io.to(socketId).emit('new_status',populatedStatus)
+        }
+      }
+     }
 
     return response(res, 201, "status created successfully", populatedStatus);
   } catch (error) {
@@ -87,6 +97,23 @@ exports.viewStatus = async(req,res)=>{
        updatedStatus = await Status.findById(statusId)
       .populate('user', "username profilePicture")
       .populate("viewers", "username profilePicture")
+      // Emit socket event 
+       if(req.io && req.socketUserMap){
+      // broadcast to all connection user expect the creator 
+      const statusOwnerSocketId = req.socketUserMap.get(status.user._id.toString())
+      if(statusOwnerSocketId){
+        const viewData = {
+          statusId,
+          viewerId:userId,
+          totalViewers:updatedStatus.viewers.length,
+          viewers:updatedStatus.viewers
+        }
+
+        res.io.to(statusOwnerSocketId).emit('status_viewed', viewData)
+      }else{
+        console.log('status onwer not connected')
+      }
+     }
     }else{
       console.log('user already viewed the status')
     }
@@ -109,7 +136,16 @@ exports.deleteStatus = async(req,res)=>{
     if(status.user.toString() !== userId){
       return response(res,403,'Not authorized to delete this status')
     }
-    await status.deleteOne()
+    await status.deleteOne();
+    //  emit socket event 
+    if(req.io && req.socketUserMap){
+      for(const  [connectedUserId , socketId] of req.socketUserMap){
+        if(connectedUserId !== userId){
+          req.io.to(socketId).emit('status_deleted',statusId)
+        }
+      }
+    }
+
 
     return response(res,200,'Status deleted successfully')
   } catch (error) {

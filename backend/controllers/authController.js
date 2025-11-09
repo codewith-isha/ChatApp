@@ -45,9 +45,7 @@ const sentOtp = async(req,res) =>{
     return response(res,500,"Internal server Error !!")
   }
 }
-
 //step - 2 Verify otp 
-
 const verifyOtp = async(req,res)=>{
   const  {phoneNumber, phoneSuffix,email,emailOtp} = req.body
   try {
@@ -61,7 +59,6 @@ const verifyOtp = async(req,res)=>{
       if(!user.emailOtp || String(user.emailOtp) !==String(emailOtp) || now > new Date(user.emailOtpExpiry)){
         return response(res,400,'Invalid or Expired otp')
       }
-       
       user.isVerified = true;
       user.emailOtp=emailOtp;
       user.emailOtpExpiry = null;
@@ -97,7 +94,6 @@ const verifyOtp = async(req,res)=>{
   }
 }
 // update profile 
-
 const updateProfile = async(req,res)=>{
   const {username,agreed,about} = req.body;
   const userId = req.user.userId;
