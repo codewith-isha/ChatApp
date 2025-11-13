@@ -14,4 +14,4 @@ const useThemeStore = create(
   )
 )
 
-export default useThemeStore ;
+export default useThemeStore 

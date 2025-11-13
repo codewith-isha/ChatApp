@@ -11,6 +11,7 @@ const Conversation = require('../models/Conversation')
 
 const sentOtp = async(req,res) =>{
   const {phoneNumber, phoneSuffix,email} = req.body;
+  console.log(req.body)
   const otp = otpGenerate();
   const expiry  = new Date(Date.now()+5 * 60 *1000)
   try {
@@ -47,7 +48,7 @@ const sentOtp = async(req,res) =>{
 }
 //step - 2 Verify otp 
 const verifyOtp = async(req,res)=>{
-  const  {phoneNumber, phoneSuffix,email,emailOtp} = req.body
+  const  {phoneNumber, phoneSuffix,email,emailOtp , otp} = req.body
   try {
     let user;
     if(email){
@@ -56,7 +57,8 @@ const verifyOtp = async(req,res)=>{
         return response (res,404,`User not Found`)
       }
       const now = new Date();
-      if(!user.emailOtp || String(user.emailOtp) !==String(emailOtp) || now > new Date(user.emailOtpExpiry)){
+      if(!user.emailOtp ||
+         String(user.emailOtp) !== String(emailOtp) || now > new Date(user.emailOtpExpiry)){
         return response(res,400,'Invalid or Expired otp')
       }
       user.isVerified = true;
@@ -169,6 +171,7 @@ const getAllUsers = async (req,res)=>{
       }
     })
    );
+   console.log(userWithConversation)
    return response(res,200,"users retrived successfully !!", userWithConversation)
   } catch (error) {
      console.error(error);

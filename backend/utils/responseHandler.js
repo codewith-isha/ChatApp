@@ -4,7 +4,7 @@ const response = (res, statusCode, message , data = null)=>{
     return;
   }
   const responseObject = {
-    status:statusCode<400 ?"sucess":"error",
+    status:statusCode>=400 ?"error":"success",
     message,
     data
   }

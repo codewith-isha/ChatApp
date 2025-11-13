@@ -18,13 +18,15 @@ const PORT  = process.env.PORT
 connectDb()
 
 const corsOption = {
-   origin:process.env.FORNTEND_URL,
-   credentials:true
+   origin:[
+      "http://localhost:5173"
+   ],
+   credentials:true,
 }
 
 app.use(cors(corsOption))
 
-app.use(cors())
+// app.use(cors())
 // middleware 
 app.use(express.json())
 app.use(cookieParser())
